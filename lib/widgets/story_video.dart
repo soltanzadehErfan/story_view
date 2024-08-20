@@ -61,7 +61,7 @@ class StoryVideo extends StatefulWidget {
     Widget? errorWidget,
   }) {
     return StoryVideo(
-      VideoLoader(url, requestHeaders: requestHeaders),
+      VideoLoader("https://t4f.arvanvod.ir/l3zY12yME0/V56KYorLR7/h_,1080_2500,k.mp4.list/master.m3u8", requestHeaders: requestHeaders),
       storyController: controller,
       key: key,
       loadingWidget: loadingWidget,
