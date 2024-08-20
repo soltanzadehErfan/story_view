@@ -61,7 +61,7 @@ class StoryVideo extends StatefulWidget {
     Widget? errorWidget,
   }) {
     return StoryVideo(
-      VideoLoader("https://t4f.arvanvod.ir/l3zY12yME0/V56KYorLR7/h_,1080_2500,k.mp4.list/master.m3u8", requestHeaders: requestHeaders),
+      VideoLoader(url, requestHeaders: requestHeaders),
       storyController: controller,
       key: key,
       loadingWidget: loadingWidget,
@@ -91,7 +91,7 @@ class StoryVideoState extends State<StoryVideo> {
     widget.videoLoader.loadVideo(() {
       if (widget.videoLoader.state == LoadState.success) {
         this.playerController =
-            VideoPlayerController.file(widget.videoLoader.videoFile!);
+            VideoPlayerController.networkUrl(Uri.file(widget.videoLoader.url));
 
         playerController!.initialize().then((v) {
           setState(() {});
