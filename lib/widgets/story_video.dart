@@ -119,7 +119,10 @@ class StoryVideoState extends State<StoryVideo> {
       return Center(
         child: AspectRatio(
           aspectRatio: playerController!.value.aspectRatio,
-          child: VideoPlayer(playerController!),
+          child: FittedBox(
+            fit: BoxFit.cover,
+            child: VideoPlayer(playerController!),
+          ),
         ),
       );
     }
