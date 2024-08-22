@@ -116,9 +116,7 @@ class StoryVideoState extends State<StoryVideo> {
 
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success && playerController!.value.isInitialized) {
-      return Container(
-        width: double.infinity,
-        height: double.infinity,
+      return Expanded(
         child: Center(
           child: FittedBox(
             fit: BoxFit.cover,
