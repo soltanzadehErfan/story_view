@@ -150,8 +150,8 @@ class StoryVideoState extends State<StoryVideo> {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.black,
-      height: double.infinity,
-      width: double.infinity,
+      height: MediaQuery.of(context).size.height,
+      width: MediaQuery.of(context).size.width,
       child: FittedBox(
         fit: BoxFit.cover,
         child: getContentView(),
