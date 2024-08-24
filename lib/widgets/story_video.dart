@@ -116,6 +116,7 @@ class StoryVideoState extends State<StoryVideo> {
 
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success && playerController!.value.isInitialized) {
+      print("is video landscape ${Platform.isAndroid && playerController!.value.size.height < playerController!.value.size.width}");
       return Center(
         child: AspectRatio(
           aspectRatio: Platform.isAndroid && playerController!.value.size.height < playerController!.value.size.width
