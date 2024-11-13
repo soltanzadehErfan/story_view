@@ -125,10 +125,12 @@ class StoryVideoState extends State<StoryVideo> {
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success && playerController!.value.isInitialized) {
       if (Platform.isAndroid) {
-        return SizedBox(
-          width: widget.width,
-          height: widget.height,
-          child: VideoPlayer(playerController!),
+        return Center(
+          child: SizedBox(
+            width: widget.width,
+            height: widget.height,
+            child: VideoPlayer(playerController!),
+          ),
         );
       } else {
         return Center(
