@@ -124,7 +124,7 @@ class StoryVideoState extends State<StoryVideo> {
 
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success && playerController!.value.isInitialized) {
-      if (Platform.isAndroid) {
+      // if (Platform.isAndroid) {
         return Center(
           child: SizedBox(
             width: widget.width,
@@ -132,14 +132,14 @@ class StoryVideoState extends State<StoryVideo> {
             child: VideoPlayer(playerController!),
           ),
         );
-      } else {
+      // } else {
         return Center(
           child: AspectRatio(
             aspectRatio: playerController!.value.aspectRatio,
             child: VideoPlayer(playerController!),
           ),
         );
-      }
+      // }
     }
 
     return widget.videoLoader.state == LoadState.loading
