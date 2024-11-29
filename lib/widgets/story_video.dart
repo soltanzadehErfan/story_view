@@ -47,6 +47,7 @@ class StoryVideo extends StatefulWidget {
   final Widget? errorWidget;
   final double? width;
   final double? height;
+  final int? quarterTurns;
 
   StoryVideo(
     this.videoLoader, {
@@ -56,6 +57,7 @@ class StoryVideo extends StatefulWidget {
     this.errorWidget,
     this.width,
     this.height,
+    this.quarterTurns,
   }) : super(key: key ?? UniqueKey());
 
   static StoryVideo url(
@@ -125,11 +127,14 @@ class StoryVideoState extends State<StoryVideo> {
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success && playerController!.value.isInitialized) {
       // if (Platform.isAndroid) {
-        return Center(
-          child: SizedBox(
-            width: widget.width,
-            height: widget.height,
-            child: VideoPlayer(playerController!),
+        return RotatedBox(
+          quarterTurns: widget.quarterTurns ?? 0,
+          child: Center(
+            child: SizedBox(
+              width: widget.width,
+              height: widget.height,
+              child: VideoPlayer(playerController!),
+            ),
           ),
         );
       // } else {
