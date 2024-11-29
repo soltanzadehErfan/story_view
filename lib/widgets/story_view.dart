@@ -237,6 +237,8 @@ class StoryItem {
 
     /// The height of the video, only for Android
     double? height,
+
+    int? quarterTurns,
   }) {
     return StoryItem(
         Container(
@@ -252,6 +254,7 @@ class StoryItem {
                 errorWidget: errorWidget,
                 height: height,
                 width: width,
+                quarterTurns: quarterTurns, 
               ),
               SafeArea(
                 child: Align(

@@ -69,6 +69,7 @@ class StoryVideo extends StatefulWidget {
     Widget? errorWidget,
     double? width,
     double? height,
+    int? quarterTurns,
   }) {
     return StoryVideo(
       VideoLoader(url, requestHeaders: requestHeaders),
@@ -78,6 +79,7 @@ class StoryVideo extends StatefulWidget {
       errorWidget: errorWidget,
       width: width,
       height: height,
+      quarterTurns: quarterTurns,
     );
   }
 
