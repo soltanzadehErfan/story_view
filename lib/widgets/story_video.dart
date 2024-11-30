@@ -48,6 +48,7 @@ class StoryVideo extends StatefulWidget {
   final double? width;
   final double? height;
   final int? quarterTurns;
+  final bool? isRotated;
 
   StoryVideo(
     this.videoLoader, {
@@ -58,6 +59,7 @@ class StoryVideo extends StatefulWidget {
     this.width,
     this.height,
     this.quarterTurns,
+    this.isRotated,
   }) : super(key: key ?? UniqueKey());
 
   static StoryVideo url(
@@ -70,6 +72,7 @@ class StoryVideo extends StatefulWidget {
     double? width,
     double? height,
     int? quarterTurns,
+    bool? isRotated,
   }) {
     return StoryVideo(
       VideoLoader(url, requestHeaders: requestHeaders),
@@ -80,6 +83,7 @@ class StoryVideo extends StatefulWidget {
       width: width,
       height: height,
       quarterTurns: quarterTurns,
+      isRotated: isRotated,
     );
   }
 
@@ -132,7 +136,7 @@ class StoryVideoState extends State<StoryVideo> {
     if (widget.videoLoader.state == LoadState.success &&
         playerController!.value.isInitialized) {
       if (Platform.isAndroid) {
-        if (widget.quarterTurns != null) {
+        if (widget.isRotated == true) {
           return RotatedBox(
             quarterTurns: widget.quarterTurns ?? 0,
             child: Center(
@@ -153,7 +157,7 @@ class StoryVideoState extends State<StoryVideo> {
           );
         }
       } else {
-        if (widget.quarterTurns != null) {
+        if (widget.isRotated == true) {
           return RotatedBox(
             quarterTurns: widget.quarterTurns ?? 0,
             child: Center(
