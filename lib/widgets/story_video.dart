@@ -25,8 +25,8 @@ class VideoLoader {
       onComplete();
     }
 
-    final fileStream =
-        DefaultCacheManager().getFileStream(this.url, headers: this.requestHeaders as Map<String, String>?);
+    final fileStream = DefaultCacheManager().getFileStream(this.url,
+        headers: this.requestHeaders as Map<String, String>?);
 
     fileStream.listen((fileResponse) {
       if (fileResponse is FileInfo) {
@@ -104,7 +104,8 @@ class StoryVideoState extends State<StoryVideo> {
 
     widget.videoLoader.loadVideo(() {
       if (widget.videoLoader.state == LoadState.success) {
-        this.playerController = VideoPlayerController.networkUrl(Uri.parse(widget.videoLoader.url));
+        this.playerController =
+            VideoPlayerController.networkUrl(Uri.parse(widget.videoLoader.url));
 
         playerController!.initialize().then((v) {
           setState(() {});
@@ -112,7 +113,8 @@ class StoryVideoState extends State<StoryVideo> {
         });
 
         if (widget.storyController != null) {
-          _streamSubscription = widget.storyController!.playbackNotifier.listen((playbackState) {
+          _streamSubscription =
+              widget.storyController!.playbackNotifier.listen((playbackState) {
             if (playbackState == PlaybackState.pause) {
               playerController!.pause();
             } else {
@@ -127,28 +129,48 @@ class StoryVideoState extends State<StoryVideo> {
   }
 
   Widget getContentView() {
-    if (widget.videoLoader.state == LoadState.success && playerController!.value.isInitialized) {
+    if (widget.videoLoader.state == LoadState.success &&
+        playerController!.value.isInitialized) {
       if (Platform.isAndroid) {
-        return RotatedBox(
-          quarterTurns: widget.quarterTurns ?? 0,
-          child: Center(
+        if (widget.quarterTurns != null) {
+          return RotatedBox(
+            quarterTurns: widget.quarterTurns ?? 0,
+            child: Center(
+              child: SizedBox(
+                width: widget.width,
+                height: widget.height,
+                child: VideoPlayer(playerController!),
+              ),
+            ),
+          );
+        } else {
+          return Center(
             child: SizedBox(
               width: widget.width,
               height: widget.height,
               child: VideoPlayer(playerController!),
             ),
-          ),
-        );
+          );
+        }
       } else {
-        return RotatedBox(
-          quarterTurns: widget.quarterTurns ?? 0,
-          child: Center(
+        if (widget.quarterTurns != null) {
+          return RotatedBox(
+            quarterTurns: widget.quarterTurns ?? 0,
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: playerController!.value.aspectRatio,
+                child: VideoPlayer(playerController!),
+              ),
+            ),
+          );
+        } else {
+          return Center(
             child: AspectRatio(
               aspectRatio: playerController!.value.aspectRatio,
               child: VideoPlayer(playerController!),
             ),
-          ),
-        );
+          );
+        }
       }
     }
 
