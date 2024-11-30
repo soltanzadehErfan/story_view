@@ -128,7 +128,7 @@ class StoryVideoState extends State<StoryVideo> {
 
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success && playerController!.value.isInitialized) {
-      // if (Platform.isAndroid) {
+      if (Platform.isAndroid) {
         return RotatedBox(
           quarterTurns: widget.quarterTurns ?? 0,
           child: Center(
@@ -139,14 +139,17 @@ class StoryVideoState extends State<StoryVideo> {
             ),
           ),
         );
-      // } else {
-        return Center(
-          child: AspectRatio(
-            aspectRatio: playerController!.value.aspectRatio,
-            child: VideoPlayer(playerController!),
+      } else {
+        return RotatedBox(
+          quarterTurns: widget.quarterTurns ?? 0,
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: playerController!.value.aspectRatio,
+              child: VideoPlayer(playerController!),
+            ),
           ),
         );
-      // }
+      }
     }
 
     return widget.videoLoader.state == LoadState.loading
