@@ -141,8 +141,6 @@ class StoryVideoState extends State<StoryVideo> {
             quarterTurns: widget.quarterTurns ?? 0,
             child: Center(
               child: AspectRatio(
-                // width: widget.width,
-                // height: widget.height,
                 aspectRatio: playerController!.value.aspectRatio,
                 child: VideoPlayer(playerController!),
               ),
@@ -151,8 +149,6 @@ class StoryVideoState extends State<StoryVideo> {
         } else {
           return Center(
             child: AspectRatio(
-              // width: widget.width,
-              // height: widget.height,
               aspectRatio: playerController!.value.aspectRatio,
               child: VideoPlayer(playerController!),
             ),

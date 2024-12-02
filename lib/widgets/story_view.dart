@@ -239,10 +239,10 @@ class StoryItem {
     /// The height of the video, only for Android
     double? height,
 
-    /// [quarterTurns] for RotatedBox
+    /// [quarterTurns] degrees of rotation for RotatedBox
     int? quarterTurns,
 
-    /// [isRotated] for rotation condition
+    /// [isRotated] used for rotation condition
     bool? isRotated,
   }) {
     return StoryItem(
