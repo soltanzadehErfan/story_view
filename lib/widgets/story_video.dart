@@ -140,18 +140,20 @@ class StoryVideoState extends State<StoryVideo> {
           return RotatedBox(
             quarterTurns: widget.quarterTurns ?? 0,
             child: Center(
-              child: SizedBox(
-                width: widget.width,
-                height: widget.height,
+              child: AspectRatio(
+                // width: widget.width,
+                // height: widget.height,
+                aspectRatio: playerController!.value.aspectRatio,
                 child: VideoPlayer(playerController!),
               ),
             ),
           );
         } else {
           return Center(
-            child: SizedBox(
-              width: widget.width,
-              height: widget.height,
+            child: AspectRatio(
+              // width: widget.width,
+              // height: widget.height,
+              aspectRatio: playerController!.value.aspectRatio,
               child: VideoPlayer(playerController!),
             ),
           );
