@@ -117,10 +117,10 @@ class StoryVideoState extends State<StoryVideo> {
           BetterPlayerDataSourceType.network,
           widget.videoLoader.url,
           headers: widget.videoLoader.requestHeaders,
-          drmConfiguration: BetterPlayerDrmConfiguration(
-            drmType: BetterPlayerDrmType.token,
-            headers: widget.videoLoader.requestHeaders,
-          ),
+          // drmConfiguration: BetterPlayerDrmConfiguration(
+          //   drmType: BetterPlayerDrmType.token,
+          //   headers: widget.videoLoader.requestHeaders,
+          // ),
         );
 
         betterPlayerController = BetterPlayerController(betterPlayerConfiguration)
