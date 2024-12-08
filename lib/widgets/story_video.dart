@@ -13,7 +13,7 @@ class VideoLoader {
 
   File? videoFile;
 
-  Map<String, dynamic>? requestHeaders;
+  Map<String, String>? requestHeaders;
 
   LoadState state = LoadState.loading;
 
@@ -65,7 +65,7 @@ class StoryVideo extends StatefulWidget {
   static StoryVideo url(
     String url, {
     StoryController? controller,
-    Map<String, dynamic>? requestHeaders,
+    Map<String, String>? requestHeaders,
     Key? key,
     Widget? loadingWidget,
     Widget? errorWidget,
@@ -112,11 +112,15 @@ class StoryVideoState extends State<StoryVideo> {
           autoPlay: true,
           looping: true,
         );
+
         final betterPlayerDataSource = BetterPlayerDataSource(
           BetterPlayerDataSourceType.network,
           widget.videoLoader.url,
-          // headers: widget.videoLoader.requestHeaders,
-          drmConfiguration: BetterPlayerDrmConfiguration(),
+          headers: widget.videoLoader.requestHeaders,
+          drmConfiguration: BetterPlayerDrmConfiguration(
+            drmType: BetterPlayerDrmType.token,
+            headers: widget.videoLoader.requestHeaders,
+          ),
         );
 
         betterPlayerController = BetterPlayerController(betterPlayerConfiguration)
