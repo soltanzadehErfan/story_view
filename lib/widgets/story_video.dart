@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,8 +10,11 @@ import '../controller/story_controller.dart';
 
 class VideoLoader {
   String url;
+
   File? videoFile;
+
   Map<String, dynamic>? requestHeaders;
+
   LoadState state = LoadState.loading;
 
   VideoLoader(this.url, {this.requestHeaders});
@@ -90,42 +94,47 @@ class StoryVideo extends StatefulWidget {
 }
 
 class StoryVideoState extends State<StoryVideo> {
+  StreamSubscription? _streamSubscription;
+
   BetterPlayerController? betterPlayerController;
 
   @override
   void initState() {
     super.initState();
 
-    widget.storyController?.pause();
+    widget.storyController!.pause();
 
     widget.videoLoader.loadVideo(() {
       if (widget.videoLoader.state == LoadState.success) {
+        final betterPlayerConfiguration = BetterPlayerConfiguration(
+          aspectRatio: 16 / 9,
+          fit: BoxFit.contain,
+          autoPlay: true,
+          looping: true,
+        );
         final betterPlayerDataSource = BetterPlayerDataSource(
           BetterPlayerDataSourceType.network,
           widget.videoLoader.url,
-          headers: widget.videoLoader.requestHeaders?.cast<String, String>(),
+          // headers: widget.videoLoader.requestHeaders,
+          drmConfiguration: BetterPlayerDrmConfiguration(),
         );
 
-        betterPlayerController = BetterPlayerController(
-          BetterPlayerConfiguration(
-            autoPlay: true,
-            looping: true,
-            aspectRatio: 16 / 9,
-            fit: BoxFit.contain,
-            placeholder: widget.loadingWidget ??
-                Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                ),
-            errorBuilder: (context, errorMessage) =>
-                widget.errorWidget ?? Text("Media failed to load."),
-          ),
-          betterPlayerDataSource: betterPlayerDataSource,
-        );
+        betterPlayerController = BetterPlayerController(betterPlayerConfiguration)
+          ..setupDataSource(betterPlayerDataSource);
 
-        widget.storyController?.play();
+        if (widget.storyController != null) {
+          _streamSubscription =
+              widget.storyController!.playbackNotifier.listen((playbackState) {
+            if (playbackState == PlaybackState.pause) {
+              betterPlayerController!.pause();
+            } else {
+              betterPlayerController!.play();
+            }
+          });
+        }
+
         setState(() {});
+        widget.storyController!.play();
       } else {
         setState(() {});
       }
@@ -135,17 +144,32 @@ class StoryVideoState extends State<StoryVideo> {
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success &&
         betterPlayerController != null) {
-      if (widget.isRotated == true) {
-        return RotatedBox(
-          quarterTurns: widget.quarterTurns ?? 0,
-          child: BetterPlayer(
-            controller: betterPlayerController!,
-          ),
-        );
+      if (Platform.isAndroid) {
+        if (widget.isRotated == true) {
+          return RotatedBox(
+            quarterTurns: widget.quarterTurns ?? 0,
+            child: Center(
+              child: BetterPlayer(controller: betterPlayerController!),
+            ),
+          );
+        } else {
+          return Center(
+            child: BetterPlayer(controller: betterPlayerController!),
+          );
+        }
       } else {
-        return BetterPlayer(
-          controller: betterPlayerController!,
-        );
+        if (widget.isRotated == true) {
+          return RotatedBox(
+            quarterTurns: widget.quarterTurns ?? 0,
+            child: Center(
+              child: BetterPlayer(controller: betterPlayerController!),
+            ),
+          );
+        } else {
+          return Center(
+            child: BetterPlayer(controller: betterPlayerController!),
+          );
+        }
       }
     }
 
@@ -182,6 +206,7 @@ class StoryVideoState extends State<StoryVideo> {
   @override
   void dispose() {
     betterPlayerController?.dispose();
+    _streamSubscription?.cancel();
     super.dispose();
   }
 }
