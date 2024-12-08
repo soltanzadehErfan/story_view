@@ -1,20 +1,16 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:video_player/video_player.dart';
+import 'package:better_player/better_player.dart';
 
 import '../utils.dart';
 import '../controller/story_controller.dart';
 
 class VideoLoader {
   String url;
-
   File? videoFile;
-
   Map<String, dynamic>? requestHeaders;
-
   LoadState state = LoadState.loading;
 
   VideoLoader(this.url, {this.requestHeaders});
@@ -94,38 +90,42 @@ class StoryVideo extends StatefulWidget {
 }
 
 class StoryVideoState extends State<StoryVideo> {
-  Future<void>? playerLoader;
-
-  StreamSubscription? _streamSubscription;
-
-  VideoPlayerController? playerController;
+  BetterPlayerController? betterPlayerController;
 
   @override
   void initState() {
     super.initState();
 
-    widget.storyController!.pause();
+    widget.storyController?.pause();
 
     widget.videoLoader.loadVideo(() {
       if (widget.videoLoader.state == LoadState.success) {
-        this.playerController =
-            VideoPlayerController.networkUrl(Uri.parse(widget.videoLoader.url));
+        final betterPlayerDataSource = BetterPlayerDataSource(
+          BetterPlayerDataSourceType.network,
+          widget.videoLoader.url,
+          headers: widget.videoLoader.requestHeaders?.cast<String, String>(),
+        );
 
-        playerController!.initialize().then((v) {
-          setState(() {});
-          widget.storyController!.play();
-        });
+        betterPlayerController = BetterPlayerController(
+          BetterPlayerConfiguration(
+            autoPlay: true,
+            looping: true,
+            aspectRatio: 16 / 9,
+            fit: BoxFit.contain,
+            placeholder: widget.loadingWidget ??
+                Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+            errorBuilder: (context, errorMessage) =>
+                widget.errorWidget ?? Text("Media failed to load."),
+          ),
+          betterPlayerDataSource: betterPlayerDataSource,
+        );
 
-        if (widget.storyController != null) {
-          _streamSubscription =
-              widget.storyController!.playbackNotifier.listen((playbackState) {
-            if (playbackState == PlaybackState.pause) {
-              playerController!.pause();
-            } else {
-              playerController!.play();
-            }
-          });
-        }
+        widget.storyController?.play();
+        setState(() {});
       } else {
         setState(() {});
       }
@@ -134,45 +134,18 @@ class StoryVideoState extends State<StoryVideo> {
 
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success &&
-        playerController!.value.isInitialized) {
-      if (Platform.isAndroid) {
-        if (widget.isRotated == true) {
-          return RotatedBox(
-            quarterTurns: widget.quarterTurns ?? 0,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: playerController!.value.aspectRatio,
-                child: VideoPlayer(playerController!),
-              ),
-            ),
-          );
-        } else {
-          return Center(
-            child: AspectRatio(
-              aspectRatio: playerController!.value.aspectRatio,
-              child: VideoPlayer(playerController!),
-            ),
-          );
-        }
+        betterPlayerController != null) {
+      if (widget.isRotated == true) {
+        return RotatedBox(
+          quarterTurns: widget.quarterTurns ?? 0,
+          child: BetterPlayer(
+            controller: betterPlayerController!,
+          ),
+        );
       } else {
-        if (widget.isRotated == true) {
-          return RotatedBox(
-            quarterTurns: widget.quarterTurns ?? 0,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: playerController!.value.aspectRatio,
-                child: VideoPlayer(playerController!),
-              ),
-            ),
-          );
-        } else {
-          return Center(
-            child: AspectRatio(
-              aspectRatio: playerController!.value.aspectRatio,
-              child: VideoPlayer(playerController!),
-            ),
-          );
-        }
+        return BetterPlayer(
+          controller: betterPlayerController!,
+        );
       }
     }
 
@@ -202,16 +175,13 @@ class StoryVideoState extends State<StoryVideo> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      // height: double.infinity,
-      // width: double.infinity,
       body: getContentView(),
     );
   }
 
   @override
   void dispose() {
-    playerController?.dispose();
-    _streamSubscription?.cancel();
+    betterPlayerController?.dispose();
     super.dispose();
   }
 }
