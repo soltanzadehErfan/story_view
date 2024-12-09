@@ -3,8 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
+import 'package:video_player/video_player.dart';
 
 import '../utils.dart';
 import '../controller/story_controller.dart';
@@ -97,7 +96,7 @@ class StoryVideo extends StatefulWidget {
 }
 
 class StoryVideoState extends State<StoryVideo> {
-  Player? _player;
+  VideoPlayerController? _playerController;
   StreamSubscription? _playbackSubscription;
 
   @override
@@ -107,26 +106,29 @@ class StoryVideoState extends State<StoryVideo> {
     widget.storyController?.pause();
     widget.videoLoader.loadVideo(() {
       if (widget.videoLoader.state == LoadState.success) {
-        _initializePlayer();
+        _initializeVideoPlayer();
       } else {
         setState(() {}); // Update UI for error state
       }
     });
   }
 
-  Future<void> _initializePlayer() async {
+  Future<void> _initializeVideoPlayer() async {
+    final controller =
+        VideoPlayerController.networkUrl(Uri.parse(widget.videoLoader.url));
     try {
-      _player = Player();
-      await _player!.open(Media(widget.videoLoader.url));
-      setState(() {});
+      await controller.initialize();
+      setState(() {
+        _playerController = controller;
+      });
       widget.storyController?.play();
 
       _playbackSubscription =
           widget.storyController?.playbackNotifier.listen((playbackState) {
         if (playbackState == PlaybackState.pause) {
-          _player?.pause();
+          _playerController?.pause();
         } else if (playbackState == PlaybackState.play) {
-          _player?.play();
+          _playerController?.play();
         }
       });
     } catch (e) {
@@ -137,11 +139,12 @@ class StoryVideoState extends State<StoryVideo> {
   }
 
   Widget _buildContentView() {
-    if (widget.videoLoader.state == LoadState.success && _player != null) {
+    if (widget.videoLoader.state == LoadState.success &&
+        _playerController?.value.isInitialized == true) {
       final content = Center(
         child: AspectRatio(
-          aspectRatio: 16 / 9, // Adjust as needed
-          child: Video(controller: VideoController(_player!)),
+          aspectRatio: _playerController!.value.aspectRatio,
+          child: VideoPlayer(_playerController!),
         ),
       );
 
@@ -186,7 +189,7 @@ class StoryVideoState extends State<StoryVideo> {
 
   @override
   void dispose() {
-    _player?.dispose();
+    _playerController?.dispose();
     _playbackSubscription?.cancel();
     super.dispose();
   }
