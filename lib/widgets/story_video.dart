@@ -107,20 +107,19 @@ class StoryVideoState extends State<StoryVideo> {
     widget.videoLoader.loadVideo(() {
       if (widget.videoLoader.state == LoadState.success) {
         final betterPlayerConfiguration = BetterPlayerConfiguration(
-          aspectRatio: 16 / 9,
           fit: BoxFit.contain,
-          autoPlay: true,
-          looping: true,
+          autoPlay: false,
+          looping: false,
         );
         final betterPlayerDataSource = BetterPlayerDataSource(
           BetterPlayerDataSourceType.network,
           widget.videoLoader.url,
-          // headers: widget.videoLoader.requestHeaders,
-          // drmConfiguration: BetterPlayerDrmConfiguration(),
+          drmConfiguration: BetterPlayerDrmConfiguration(),
         );
 
-        betterPlayerController = BetterPlayerController(betterPlayerConfiguration)
-          ..setupDataSource(betterPlayerDataSource);
+        betterPlayerController =
+            BetterPlayerController(betterPlayerConfiguration)
+              ..setupDataSource(betterPlayerDataSource);
 
         if (widget.storyController != null) {
           _streamSubscription =
