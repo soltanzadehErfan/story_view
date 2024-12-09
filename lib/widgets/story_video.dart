@@ -10,8 +10,11 @@ import '../controller/story_controller.dart';
 
 class VideoLoader {
   final String url;
+
   File? videoFile;
+
   final Map<String, dynamic>? requestHeaders;
+
   LoadState state = LoadState.loading;
 
   VideoLoader(this.url, {this.requestHeaders});
@@ -169,9 +172,9 @@ class StoryVideoState extends State<StoryVideo> {
 
     return Center(
       child: widget.errorWidget ??
-          const Text(
+          Text(
             "Media failed to load.",
-            style: TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white),
           ),
     );
   }
@@ -186,24 +189,8 @@ class StoryVideoState extends State<StoryVideo> {
 
   @override
   void dispose() {
-    // Dispose of the video player controller to release resources.
-    if (_playerController != null) {
-      _playerController!.removeListener(_onVideoPlayerStateChanged);
-      _playerController!.dispose();
-      _playerController = null;
-    }
-
-    // Cancel the playback subscription to stop listening to changes.
+    _playerController?.dispose();
     _playbackSubscription?.cancel();
-    _playbackSubscription = null;
-
-    // Always call the superclass dispose method at the end.
     super.dispose();
-  }
-
-  // Optional: If any listeners were added, handle them here.
-  void _onVideoPlayerStateChanged() {
-    // Example placeholder for future listener handling logic.
-    setState(() {});
   }
 }
