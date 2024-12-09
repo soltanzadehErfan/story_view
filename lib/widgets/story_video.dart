@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:better_player/better_player.dart';
+import 'package:video_player/video_player.dart';
 
 import '../utils.dart';
 import '../controller/story_controller.dart';
@@ -94,9 +94,11 @@ class StoryVideo extends StatefulWidget {
 }
 
 class StoryVideoState extends State<StoryVideo> {
+  Future<void>? playerLoader;
+
   StreamSubscription? _streamSubscription;
 
-  BetterPlayerController? betterPlayerController;
+  VideoPlayerController? playerController;
 
   @override
   void initState() {
@@ -106,34 +108,24 @@ class StoryVideoState extends State<StoryVideo> {
 
     widget.videoLoader.loadVideo(() {
       if (widget.videoLoader.state == LoadState.success) {
-        final betterPlayerConfiguration = BetterPlayerConfiguration(
-          fit: BoxFit.contain,
-          autoPlay: false,
-          looping: false,
-        );
-        final betterPlayerDataSource = BetterPlayerDataSource(
-          BetterPlayerDataSourceType.network,
-          widget.videoLoader.url,
-          drmConfiguration: BetterPlayerDrmConfiguration(),
-        );
+        this.playerController =
+            VideoPlayerController.networkUrl(Uri.parse(widget.videoLoader.url));
 
-        betterPlayerController =
-            BetterPlayerController(betterPlayerConfiguration)
-              ..setupDataSource(betterPlayerDataSource);
+        playerController!.initialize().then((v) {
+          setState(() {});
+          widget.storyController!.play();
+        });
 
         if (widget.storyController != null) {
           _streamSubscription =
               widget.storyController!.playbackNotifier.listen((playbackState) {
             if (playbackState == PlaybackState.pause) {
-              betterPlayerController!.pause();
+              playerController!.pause();
             } else {
-              betterPlayerController!.play();
+              playerController!.play();
             }
           });
         }
-
-        setState(() {});
-        widget.storyController!.play();
       } else {
         setState(() {});
       }
@@ -142,18 +134,24 @@ class StoryVideoState extends State<StoryVideo> {
 
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success &&
-        betterPlayerController != null) {
+        playerController!.value.isInitialized) {
       if (Platform.isAndroid) {
         if (widget.isRotated == true) {
           return RotatedBox(
             quarterTurns: widget.quarterTurns ?? 0,
             child: Center(
-              child: BetterPlayer(controller: betterPlayerController!),
+              child: AspectRatio(
+                aspectRatio: playerController!.value.aspectRatio,
+                child: VideoPlayer(playerController!),
+              ),
             ),
           );
         } else {
           return Center(
-            child: BetterPlayer(controller: betterPlayerController!),
+            child: AspectRatio(
+              aspectRatio: playerController!.value.aspectRatio,
+              child: VideoPlayer(playerController!),
+            ),
           );
         }
       } else {
@@ -161,12 +159,18 @@ class StoryVideoState extends State<StoryVideo> {
           return RotatedBox(
             quarterTurns: widget.quarterTurns ?? 0,
             child: Center(
-              child: BetterPlayer(controller: betterPlayerController!),
+              child: AspectRatio(
+                aspectRatio: playerController!.value.aspectRatio,
+                child: VideoPlayer(playerController!),
+              ),
             ),
           );
         } else {
           return Center(
-            child: BetterPlayer(controller: betterPlayerController!),
+            child: AspectRatio(
+              aspectRatio: playerController!.value.aspectRatio,
+              child: VideoPlayer(playerController!),
+            ),
           );
         }
       }
@@ -198,13 +202,15 @@ class StoryVideoState extends State<StoryVideo> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      // height: double.infinity,
+      // width: double.infinity,
       body: getContentView(),
     );
   }
 
   @override
   void dispose() {
-    betterPlayerController?.dispose();
+    playerController?.dispose();
     _streamSubscription?.cancel();
     super.dispose();
   }
