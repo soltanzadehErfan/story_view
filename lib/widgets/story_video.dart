@@ -9,33 +9,37 @@ import '../utils.dart';
 import '../controller/story_controller.dart';
 
 class VideoLoader {
-  String url;
+  final String url;
 
   File? videoFile;
 
-  Map<String, dynamic>? requestHeaders;
+  final Map<String, dynamic>? requestHeaders;
 
   LoadState state = LoadState.loading;
 
   VideoLoader(this.url, {this.requestHeaders});
 
   void loadVideo(VoidCallback onComplete) {
-    if (this.videoFile != null) {
-      this.state = LoadState.success;
+    if (videoFile != null) {
+      state = LoadState.success;
       onComplete();
+      return;
     }
 
-    final fileStream = DefaultCacheManager().getFileStream(this.url,
-        headers: this.requestHeaders as Map<String, String>?);
+    final fileStream = DefaultCacheManager()
+        .getFileStream(url, headers: requestHeaders as Map<String, String>?);
 
     fileStream.listen((fileResponse) {
       if (fileResponse is FileInfo) {
-        if (this.videoFile == null) {
-          this.state = LoadState.success;
-          this.videoFile = fileResponse.file;
+        if (videoFile == null) {
+          state = LoadState.success;
+          videoFile = fileResponse.file;
           onComplete();
         }
       }
+    }).onError((error) {
+      state = LoadState.failure;
+      onComplete();
     });
   }
 }
@@ -88,130 +92,105 @@ class StoryVideo extends StatefulWidget {
   }
 
   @override
-  State<StatefulWidget> createState() {
-    return StoryVideoState();
-  }
+  State<StatefulWidget> createState() => StoryVideoState();
 }
 
 class StoryVideoState extends State<StoryVideo> {
-  Future<void>? playerLoader;
-
-  StreamSubscription? _streamSubscription;
-
-  VideoPlayerController? playerController;
+  VideoPlayerController? _playerController;
+  StreamSubscription? _playbackSubscription;
 
   @override
   void initState() {
     super.initState();
 
-    widget.storyController!.pause();
-
+    widget.storyController?.pause();
     widget.videoLoader.loadVideo(() {
       if (widget.videoLoader.state == LoadState.success) {
-        this.playerController =
-            VideoPlayerController.networkUrl(Uri.parse(widget.videoLoader.url));
-
-        playerController!.initialize().then((v) {
-          setState(() {});
-          widget.storyController!.play();
-        });
-
-        if (widget.storyController != null) {
-          _streamSubscription =
-              widget.storyController!.playbackNotifier.listen((playbackState) {
-            if (playbackState == PlaybackState.pause) {
-              playerController!.pause();
-            } else {
-              playerController!.play();
-            }
-          });
-        }
+        _initializeVideoPlayer();
       } else {
-        setState(() {});
+        setState(() {}); // Update UI for error state
       }
     });
   }
 
-  Widget getContentView() {
+  Future<void> _initializeVideoPlayer() async {
+    final controller =
+        VideoPlayerController.networkUrl(Uri.parse(widget.videoLoader.url));
+    try {
+      await controller.initialize();
+      setState(() {
+        _playerController = controller;
+      });
+      widget.storyController?.play();
+
+      _playbackSubscription =
+          widget.storyController?.playbackNotifier.listen((playbackState) {
+        if (playbackState == PlaybackState.pause) {
+          _playerController?.pause();
+        } else if (playbackState == PlaybackState.play) {
+          _playerController?.play();
+        }
+      });
+    } catch (e) {
+      setState(() {
+        widget.videoLoader.state = LoadState.failure;
+      });
+    }
+  }
+
+  Widget _buildContentView() {
     if (widget.videoLoader.state == LoadState.success &&
-        playerController!.value.isInitialized) {
-      if (Platform.isAndroid) {
-        if (widget.isRotated == true) {
-          return RotatedBox(
-            quarterTurns: widget.quarterTurns ?? 0,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: playerController!.value.aspectRatio,
-                child: VideoPlayer(playerController!),
-              ),
-            ),
-          );
-        } else {
-          return Center(
-            child: AspectRatio(
-              aspectRatio: playerController!.value.aspectRatio,
-              child: VideoPlayer(playerController!),
-            ),
-          );
-        }
-      } else {
-        if (widget.isRotated == true) {
-          return RotatedBox(
-            quarterTurns: widget.quarterTurns ?? 0,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: playerController!.value.aspectRatio,
-                child: VideoPlayer(playerController!),
-              ),
-            ),
-          );
-        } else {
-          return Center(
-            child: AspectRatio(
-              aspectRatio: playerController!.value.aspectRatio,
-              child: VideoPlayer(playerController!),
-            ),
-          );
-        }
-      }
+        _playerController?.value.isInitialized == true) {
+      final content = Center(
+        child: AspectRatio(
+          aspectRatio: _playerController!.value.aspectRatio,
+          child: VideoPlayer(_playerController!),
+        ),
+      );
+
+      return widget.isRotated == true
+          ? RotatedBox(
+              quarterTurns: widget.quarterTurns ?? 0,
+              child: content,
+            )
+          : content;
     }
 
-    return widget.videoLoader.state == LoadState.loading
-        ? Center(
-            child: widget.loadingWidget ??
-                Container(
-                  width: 70,
-                  height: 70,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    strokeWidth: 3,
-                  ),
-                ),
-          )
-        : Center(
-            child: widget.errorWidget ??
-                Text(
-                  "Media failed to load.",
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                ));
+    if (widget.videoLoader.state == LoadState.loading) {
+      return Center(
+        child: widget.loadingWidget ??
+            SizedBox(
+              width: 70,
+              height: 70,
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                strokeWidth: 3,
+              ),
+            ),
+      );
+    }
+
+    return Center(
+      child: widget.errorWidget ??
+          Text(
+            "Media failed to load.",
+            style: const TextStyle(color: Colors.white),
+          ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      // height: double.infinity,
-      // width: double.infinity,
-      body: getContentView(),
+      body: _buildContentView(),
     );
   }
 
   @override
   void dispose() {
-    playerController?.dispose();
-    _streamSubscription?.cancel();
+    _playerController?.dispose();
+    _playbackSubscription?.cancel();
     super.dispose();
   }
 }
